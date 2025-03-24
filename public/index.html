@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>自动访问保活管理系统</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f5f6fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        h2 {
+            color: #1970c8;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 32px;
+        }
+        h2.section-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group button {
+            margin-top: 15px;
+            width: 120px;  
+        }
+        .login-form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }        
+        #loginForm {
+            max-width: 20rem;
+            margin: 100px auto;
+        }        
+        input[type="password"] {
+            width: 250px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 110px;
+            resize: vertical;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .delete-btn {
+            background: #e74c3c;
+        }
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        #logContent {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            height: calc(100vh - 200px);
+            min-height: 425px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        .hidden { display: none; }
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .alert-error {
+            background: #fee;
+            color: #e74c3c;
+            border: 1px solid #fcc;
+        }
+        .alert-success {
+            background: #efe;
+            color: #27ae60;
+            border: 1px solid #cfc;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+        .right-panel {
+            position: sticky;
+            top: 20px;
+        }
+        .log-card {
+            display: flex;
+            flex-direction: column;
+        }
+        .refresh-button {
+            align-self: flex-end;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .log-header h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .url-list-table {
+            width: 100%;
+        }
+        .url-list-table tr {
+            height: 32px;
+        }
+        .url-list-table td {
+            padding: 4px 8px;
+        }
+        .title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .title-container h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+            color: #00a056;
+        }
+        
+        .top-buttons {
+            position: fixed;
+            top: 5px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 1001;
+        }
+        .top-button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .top-button:hover {
+            background: #f5f5f5;
+        }
+        
+        /* 响应式样式 */
+        @media screen and (max-width: 768px) {
+            .container {
+                margin: 10px auto;
+                padding: 10px;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .left-panel, .right-panel {
+                margin: 0 !important;
+                gap: 20px;
+            }
+            
+            .right-panel {
+                position: static;
+            }
+            
+            #loginForm {
+                margin: 50px auto;
+                width: 90%;
+            }
+            
+            input[type="password"] {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+            
+            .title-container {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .title-container button {
+                width: 100%;
+            }
+            
+            .top-buttons {
+                right: 10px;
+            }
+            
+            .top-button {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            
+            #logContent {
+                height: 300px;
+                min-height: auto;
+            }
+            
+            .url-list-table td {
+                font-size: 14px;
+                word-break: break-all;
+            }
+            
+            .url-list-table button {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+            
+            h2.section-title {
+                font-size: 20px;
+            }
+        }
+        
+        /* 横屏样式 */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            #logContent {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-buttons">
+        <a href="https://github.com/eooce/auto-access" target="_blank" class="top-button">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub
+        </a>
+    </div>
+    
+    <div class="container">
+        <div id="loginForm" class="card" style="padding: 40px;">
+            <h2 style="text-align: center;color:#1970c8">登录管理系统</h2>
+            <div class="alert alert-error" id="loginError"></div>
+            <div class="login-form-group">
+                <input type="password" id="password" placeholder="请输入管理密码" autocomplete="current-password">
+                <button onclick="login()">登录</button>
+            </div>
+        </div>
+
+        <div id="mainContent" class="hidden">
+            <div class="dashboard">
+                <div class="right-panel" style="margin-right: -6rem">
+                    <div class="card log-card">
+                        <div class="log-header">
+                            <h2 class="section-title" style="color: #099d81;">访问日志</h2>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="delete-btn" onclick="clearLogs()">清理日志</button>
+                                <button class="refresh-button" onclick="viewLogs()">刷新日志</button>
+                            </div>
+                        </div>
+                        <div class="alert alert-success" id="logSuccess"></div>
+                        <div id="logContent"></div>
+                    </div>
+                </div>
+                <div class="left-panel" style="margin-left: 6rem">
+                    <div class="card">
+                        <div class="title-container">
+                            <h2 class="section-title">添加 URL</h2>
+                            <button onclick="showUrlList()">查看所有URL</button>
+                        </div>
+                        <div class="alert alert-success" id="addSuccess"></div>
+                        <div class="form-group">
+                            <textarea id="urlInput" placeholder="请输入url(s)，支持批量添加，每行一条链接"></textarea>
+                            <button onclick="addUrls()">添加</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="section-title" style="color: #ff0000;">删除 URL</h2>
+                        <div class="alert alert-success" id="deleteSuccess"></div>
+                        <div class="form-group">
+                            <textarea id="deleteUrlInput" placeholder="请输入要删除的url(s)，支持批量删除，每行一条链接"></textarea>
+                            <button class="delete-btn" onclick="deleteUrls()">删除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- URL列表弹窗 -->
+        <div id="urlListModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeUrlList()">&times;</span>
+                <h2 style="text-align: center;">URL 列表</h2>
+                <div id="urlList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isAuthenticated = false;
+
+        async function login() {
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    isAuthenticated = true;
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    loadUrls();
+                    viewLogs();
+                } else {
+                    showError('密码错误，请重试');
+                }
+            } catch (error) {
+                showError('登录失败，请稍后重试');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 3000);
+        }
+
+        function showSuccess(message, type = 'add') {
+            const successDiv = document.getElementById(type === 'add' ? 'addSuccess' : 'deleteSuccess');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 3000);
+        }
+
+        function showUrlList() {
+            loadUrls();
+            document.getElementById('urlListModal').style.display = 'block';
+        }
+
+        function closeUrlList() {
+            document.getElementById('urlListModal').style.display = 'none';
+        }
+
+        async function loadUrls() {
+            const response = await fetch('/admin/urls');
+            const text = await response.text();
+            const urls = text.split('\n').filter(url => url.trim());
+            
+            const urlList = document.getElementById('urlList');
+            urlList.innerHTML = `
+                <table class="url-list-table">
+                    <tr>
+                        <th>URL</th>
+                        <th style="width: 80px;">操作</th>
+                    </tr>
+                    ${urls.map(url => `
+                        <tr>
+                            <td>${url.replace(/"/g, '').replace(/,/g, '')}</td>
+                            <td>
+                                <button class="delete-btn" style="padding: 4px 8px;" onclick='deleteUrl("${url.replace(/"/g, '').replace(/,/g, '')}")'>删除</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        }
+
+        async function addUrls() {
+            const urls = document.getElementById('urlInput').value
+                .split('\n')
+                .filter(url => url.trim());
+
+            for (const url of urls) {
+                await fetch('/add-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url.trim() })
+                });
+            }
+            
+            showSuccess('URL添加成功', 'add');
+            loadUrls();
+            document.getElementById('urlInput').value = '';
+        }
+
+        async function deleteUrls() {
+            const urls = document.getElementById('deleteUrlInput').value
+                .split('\n')
+                .filter(url => url.trim());
+
+            if (!confirm(`确定要删除这些URL吗？共 ${urls.length} 个`)) return;
+
+            for (const url of urls) {
+                await fetch('/delete-url', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url.trim() })
+                });
+            }
+            
+            showSuccess('URL删除成功', 'delete');
+            loadUrls();
+            document.getElementById('deleteUrlInput').value = '';
+        }
+
+        async function deleteUrl(url) {
+            if (!confirm('确定要删除这个URL吗？')) return;
+            
+            await fetch('/delete-url', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            loadUrls();
+        }
+
+        async function viewLogs() {
+            const response = await fetch('/admin/logs');
+            const logs = await response.text();
+            document.getElementById('logContent').textContent = logs;
+        }
+
+        // 清理日志
+        async function clearLogs() {
+            if (!isAuthenticated) {
+                showError('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/logs', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    document.getElementById('logContent').textContent = '';
+                    // 显示日志区域的成功提示
+                    const successDiv = document.getElementById('logSuccess');
+                    successDiv.textContent = '日志清理成功';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => successDiv.style.display = 'none', 3000);
+                    viewLogs();
+                } else {
+                    showError('日志清理失败');
+                }
+            } catch (error) {
+                showError('日志清理失败，请稍后重试');
+            }
+        }
+
+        // 点击弹窗外部关闭弹窗
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('urlListModal')) {
+                closeUrlList();
+            }
+        }
+
+        // 回车键登录支持
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+        // 自动刷新日志
+        setInterval(viewLogs, 1600000);
+    </script>
+</body>
+</html>
