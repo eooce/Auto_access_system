@@ -1,13 +1,13 @@
 {
   "name": "nodejs-web-access",
   "version": "1.0.0",
-  "description": "a node access",
-  "main": "app.js",
+  "description": "nodejs",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "axios": "latest",
+    "axios": "^1.9.0",
     "sqlite3": "latest",
     "express": "latest",
     "winston": "^3.17.0",
